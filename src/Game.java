@@ -79,7 +79,7 @@ public class Game {
             System.out.println("Generation number: " + (it + 1));
             System.out.println("Number of individuals: " + counter);
             print(now);
-            Thread.sleep(2000);
+            Thread.sleep(1800);
         }
         System.out.println("Аll individuals died out! Civilization has lived " + it + "generation");
     }
