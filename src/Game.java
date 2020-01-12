@@ -1,17 +1,51 @@
-import java.util.Scanner;
+import javax.swing.*;
+import java.awt.*;
 import java.util.Random;
 import java.lang.Thread;
 
-public class Game {
+public class Game extends JFrame{
     private static int counter = 1;
+    private JLabel generatinonLbl = new JLabel();
+    private JLabel aliveLbl = new JLabel();
 
-    private static void print(char[][] mas){
-        for(int i = 0; i < mas.length; i++){
-            for(int j = 0; j < mas.length; j++){
-                System.out.print(mas[i][j]);
+    public Game(boolean[][] now){
+        super("Game of Life");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(425, 500);
+        setVisible(true);
+        setLayout(null);
+
+        generatinonLbl.setBounds(15, 10, 160, 20);
+        add(generatinonLbl);
+        aliveLbl.setBounds(15, 30, 160, 20);
+        add(aliveLbl);
+
+        JPanel panel = new JPanel(){
+            @Override
+            public void paint(Graphics g) {
+                super.paint(g);
+                for (int i = 0; i < now.length; i++){
+                    for(int j = 0; j < now[i].length; j++){
+                        if(now[i][j]){
+                            g.setColor(Color.WHITE);
+                            g.fillRect(j * 20, i * 20, 19, 19);
+                        }
+                    }
+                }
             }
-            System.out.println();
-        }
+        };
+        panel.setBackground(Color.BLACK);
+        panel.setLayout(null);
+        panel.setBounds(0, 50, 400, 400);
+        add(panel);
+    }
+
+    void setGenerationText(int value){
+        generatinonLbl.setText("Generation #" + value);
+    }
+
+    void setAliveText(int value){
+        aliveLbl.setText("Alive: " + value);
     }
 
     private static int saveNeghtbor(int i, int len){ // переход через границы мира
@@ -24,9 +58,9 @@ public class Game {
         return 0;
     }
 
-    private static int neghtborVel(char ths){return (ths == 'O'? 1: 0);}
+    private static int neghtborVel(boolean ths){return (ths? 1: 0);}
 
-    private static void nextGeneration(char[][] now, char[][] past){
+    private static void nextGeneration(boolean[][] now, boolean[][] past){
         counter = 0;
         for(int i = 0; i < now.length; i++){
             for(int j = 0, sum = 0; j < now.length; j++, sum = 0){
@@ -40,16 +74,16 @@ public class Game {
                 sum += neghtborVel(now[saveNeghtbor(i + 1, now.length)][saveNeghtbor(j + 1, now.length)]);
                 if(sum == 2){
                     past[i][j] = now[i][j];
-                    if(past[i][j] == 'O'){
+                    if(past[i][j]){
                         counter++;
                     }
                 }
                 else if(sum == 3){
-                    past[i][j] = 'O';
+                    past[i][j] = true;
                     counter++;
                 }
                 else{
-                    past[i][j] = ' ';
+                    past[i][j] = false;
                 }
             }
         }
@@ -57,17 +91,14 @@ public class Game {
 
     public static void main(String[] args) throws Exception {
         int it; // счётчик итераций здесь должан быть глобальным
-        Scanner scan = new Scanner(System.in);
-        System.out.print("Enter world size: ");
-        int len = scan.nextInt();
-        char[][] now = new char[len][len];
-        char[][] past = new char[len][len];
-        //int forRand = scan.nextInt();
-        //int kolGener = scan.nextInt();
-        Random rand = new Random();
+        final int len = 20;
+        final boolean[][] now = new boolean[len][len];
+        final boolean[][] past = new boolean[len][len];
+        final Random rand = new Random();
+        final Game frame = new Game(now);
         for(int i = 0; i < len; i++){
             for(int j = 0; j < len; j++){
-                now[i][j] = (rand.nextBoolean()? 'O': ' ');
+                now[i][j] = rand.nextBoolean();
             }
         }
         for(it = 0; counter > 0; it++){
@@ -75,13 +106,10 @@ public class Game {
             for(int v = 0; v < now.length; v++){
                 now[v] = past[v].clone();
             }
-            System.out.println("\f");
-            System.out.println("Generation number: " + (it + 1));
-            System.out.println("Number of individuals: " + counter);
-            print(now);
-            Thread.sleep(1500);
+            frame.setGenerationText(it + 1);
+            frame.setAliveText(counter);
+            frame.repaint();
+            Thread.sleep(750);
         }
-        System.out.println("Аll individuals died out! Civilization has lived " + it + " generation");
     }
 }
-
