@@ -1,23 +1,49 @@
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionListener;
 import java.util.Random;
 import java.lang.Thread;
 
 public class Game extends JFrame{
-    private static int counter = 1;
-    private JLabel generatinonLbl = new JLabel();
+    private int counter = 1;
+    private JLabel generationLbl = new JLabel();
     private JLabel aliveLbl = new JLabel();
+    private boolean plaing;
+    private int it = 1;
 
-    public Game(boolean[][] now){
+    public Game(){
         super("Game of Life");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(425, 500);
+        setSize(425, 620);
         setVisible(true);
         setLayout(null);
 
-        generatinonLbl.setBounds(15, 10, 160, 20);
-        add(generatinonLbl);
-        aliveLbl.setBounds(15, 30, 160, 20);
+        final int len = 20;
+        boolean[][] now = new boolean[len][len];
+        final boolean[][] past = new boolean[len][len];
+        final Random rand = new Random();
+        newBoard(now, rand);
+        count(now);
+        plaing = false;
+
+        JLabel strGeneration = new JLabel();
+        strGeneration.setText("Generation #");
+        strGeneration.setBounds(15, 10, 80, 20);
+        add(strGeneration);
+
+        generationLbl.setBounds(105, 10, 160, 20);
+        generationLbl.setName("GenerationLabel");
+        generationLbl.setText("1");
+        add(generationLbl);
+
+        JLabel strAlive = new JLabel();
+        strAlive.setText("Alive:");
+        strAlive.setBounds(15, 30, 55, 20);
+        add(strAlive);
+
+        aliveLbl.setBounds(70, 30, 160, 20);
+        aliveLbl.setName("AliveLabel");
+        setAliveText(counter);
         add(aliveLbl);
 
         JPanel panel = new JPanel(){
@@ -36,19 +62,63 @@ public class Game extends JFrame{
         };
         panel.setBackground(Color.BLACK);
         panel.setLayout(null);
-        panel.setBounds(0, 50, 400, 400);
+        panel.setBounds(0, 170, 400, 400);
         add(panel);
+
+        JButton play = new JButton("Play");
+        play.setName("PlayToggleButton");
+        play.setBounds(135, 70, 110, 50);
+        play.addActionListener(e -> plaing = true);
+        add(play);
+
+        JButton reset = new JButton("Reset");
+        reset.setName("ResetButton");
+        reset.setBounds(10, 70, 110, 50);
+        reset.addActionListener(e ->{
+            newBoard(now, rand);
+            count(now);
+            setAliveText(counter);
+            setGenerationText(1);
+            repaint();
+            plaing = false;
+            it = 1;
+        });
+        add(reset);
+
+        JButton pause = new JButton("Pause");
+        pause.setBounds(260, 70, 110, 50);
+        pause.addActionListener(e -> plaing = false);
+        add(pause);
+
+        while (counter > 0){
+            if(plaing) {
+                nextGeneration(now, past);
+                for (int v = 0; v < now.length; v++) {
+                    now[v] = past[v].clone();
+                }
+                setGenerationText(it + 1);
+                setAliveText(counter);
+                repaint();
+                it++;
+            }
+            try {
+                Thread.sleep(500);
+            }
+            catch (InterruptedException e){
+                break;
+            }
+        }
     }
 
     void setGenerationText(int value){
-        generatinonLbl.setText("Generation #" + value);
+        generationLbl.setText(Integer.toString(value));
     }
 
     void setAliveText(int value){
-        aliveLbl.setText("Alive: " + value);
+        aliveLbl.setText(Integer.toString(value));
     }
 
-    private static int saveNeghtbor(int i, int len){ // переход через границы мира
+    private int saveNeghtbor(int i, int len){ // переход через границы мира
         if(i < len && i > 0){
             return i;
         }
@@ -58,9 +128,9 @@ public class Game extends JFrame{
         return 0;
     }
 
-    private static int neghtborVel(boolean ths){return (ths? 1: 0);}
+    private int neghtborVel(boolean ths){return (ths? 1: 0);}
 
-    private static void nextGeneration(boolean[][] now, boolean[][] past){
+    private void nextGeneration(boolean[][] now, boolean[][] past){
         counter = 0;
         for(int i = 0; i < now.length; i++){
             for(int j = 0, sum = 0; j < now.length; j++, sum = 0){
@@ -89,27 +159,26 @@ public class Game extends JFrame{
         }
     }
 
-    public static void main(String[] args) throws Exception {
-        int it; // счётчик итераций здесь должан быть глобальным
-        final int len = 20;
-        final boolean[][] now = new boolean[len][len];
-        final boolean[][] past = new boolean[len][len];
-        final Random rand = new Random();
-        final Game frame = new Game(now);
-        for(int i = 0; i < len; i++){
-            for(int j = 0; j < len; j++){
-                now[i][j] = rand.nextBoolean();
+    private void newBoard(boolean[][] mat, Random rand){
+        for(int i = 0; i < mat.length; i++){
+            for(int j = 0; j < mat.length; j++){
+                mat[i][j] = rand.nextBoolean();
             }
         }
-        for(it = 0; counter > 0; it++){
-            nextGeneration(now, past);
-            for(int v = 0; v < now.length; v++){
-                now[v] = past[v].clone();
+    }
+
+    private void count(boolean[][] mat){
+        counter = 0;
+        for(int i = 0; i < mat.length; i++){
+            for(int j = 0; j < mat.length; j++){
+                if(mat[i][j]){
+                    counter++;
+                }
             }
-            frame.setGenerationText(it + 1);
-            frame.setAliveText(counter);
-            frame.repaint();
-            Thread.sleep(750);
         }
+    }
+
+    public static void main(String[] args) {
+        final Game frame = new Game();
     }
 }
