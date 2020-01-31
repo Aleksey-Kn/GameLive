@@ -10,12 +10,14 @@ public class Game extends JFrame{
     private JLabel aliveLbl = new JLabel();
     private boolean plaing;
     private int it = 1;
+    private int speed = 1250;
 
     public Game(){
         super("Game of Life");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(425, 620);
         setVisible(true);
+        setLocation(300, 100);
         setLayout(null);
 
         final int len = 20;
@@ -45,6 +47,11 @@ public class Game extends JFrame{
         aliveLbl.setName("AliveLabel");
         setAliveText(counter);
         add(aliveLbl);
+
+        JSlider slider = new JSlider(0, 1950, 1250);
+        slider.setBounds(20, 135, 385, 20);
+        slider.addChangeListener(e -> speed = ((JSlider)e.getSource()).getValue());
+        add(slider);
 
         JPanel panel = new JPanel(){
             @Override
@@ -102,7 +109,7 @@ public class Game extends JFrame{
                 it++;
             }
             try {
-                Thread.sleep(500);
+                Thread.sleep(2000 - speed);
             }
             catch (InterruptedException e){
                 break;
